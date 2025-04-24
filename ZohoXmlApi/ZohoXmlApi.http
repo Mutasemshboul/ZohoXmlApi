@@ -1,0 +1,6 @@
+@ZohoXmlApi_HostAddress = http://localhost:5288
+
+GET {{ZohoXmlApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
