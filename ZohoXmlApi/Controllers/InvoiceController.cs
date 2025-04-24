@@ -21,45 +21,54 @@ namespace ZohoXmlApi.Controllers
                 var date = invoice.GetProperty("date").GetString();
                 var total = invoice.GetProperty("total").GetDecimal();
                 var tax = invoice.TryGetProperty("tax", out var taxVal) ? taxVal.GetDecimal() : 0;
-                    
                 var totalWithTax = total + tax;
 
-                // توليد XML تجريبي
+                // تعريف الـ namespaces
+                XNamespace ns = "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2";
+                XNamespace cbc = "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2";
+                XNamespace cac = "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2";
+
+                // بناء XML
                 var xml = new XDocument(
-                    new XElement("Invoice",
-                        new XAttribute(XNamespace.Xmlns + "cbc", "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"),
-                        new XAttribute(XNamespace.Xmlns + "cac", "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"),
-                        new XAttribute("xmlns", "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"),
+                    new XElement(ns + "Invoice",
+                        new XAttribute(XNamespace.Xmlns + "cbc", cbc),
+                        new XAttribute(XNamespace.Xmlns + "cac", cac),
 
-                        new XElement(XName.Get("ID", "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"), invoiceNo),
-                        new XElement(XName.Get("UUID", "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"), Guid.NewGuid().ToString()),
-                        new XElement(XName.Get("IssueDate", "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"), date),
-                        new XElement(XName.Get("InvoiceTypeCode", "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"),
-                            new XAttribute("name", "012"), "388"
-                        ),
+                        new XElement(cbc + "ProfileID", "reporting:1.0"),
+                        new XElement(cbc + "ID", invoiceNo),
+                        new XElement(cbc + "UUID", Guid.NewGuid().ToString()),
+                        new XElement(cbc + "IssueDate", date),
+                        new XElement(cbc + "InvoiceTypeCode", new XAttribute("name", "012"), "388"),
+                        new XElement(cbc + "DocumentCurrencyCode", "JOD"),
+                        new XElement(cbc + "TaxCurrencyCode", "JOD"),
 
-                        new XElement(XName.Get("AccountingCustomerParty", "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"),
-                            new XElement(XName.Get("Party", "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"),
-                                new XElement(XName.Get("PartyLegalEntity", "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"),
-                                    new XElement(XName.Get("RegistrationName", "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"), customerName)
+                        new XElement(cac + "AccountingCustomerParty",
+                            new XElement(cac + "Party",
+                                new XElement(cac + "PartyLegalEntity",
+                                    new XElement(cbc + "RegistrationName", customerName)
                                 )
                             )
                         ),
 
-                        new XElement(XName.Get("LegalMonetaryTotal", "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"),
-                            new XElement(XName.Get("PayableAmount", "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"),
-                                new XAttribute("currencyID", "JOD"), totalWithTax.ToString("F2")
+                        new XElement(cac + "LegalMonetaryTotal",
+                            new XElement(cbc + "PayableAmount",
+                                new XAttribute("currencyID", "JOD"),
+                                totalWithTax.ToString("F2")
                             )
                         )
                     )
                 );
 
-                // طباعة XML كنص
+                // تحويل XML إلى نص
                 var xmlString = xml.Declaration?.ToString() + "\n" + xml.ToString();
                 Console.WriteLine("📄 XML GENERATED:");
                 Console.WriteLine(xmlString);
 
-                return Ok(new { message = "✅ XML تم توليده وطباعته", xml = xmlString });
+                return Ok(new
+                {
+                    message = "✅ تم توليد XML بنجاح",
+                    xml = xmlString
+                });
             }
             catch (Exception ex)
             {
