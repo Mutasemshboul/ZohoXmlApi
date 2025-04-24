@@ -21,7 +21,7 @@ namespace ZohoXmlApi.Controllers
                 var date = invoice.GetProperty("date").GetString();
                 var total = invoice.GetProperty("total").GetDecimal();
                 var tax = invoice.TryGetProperty("tax", out var taxVal) ? taxVal.GetDecimal() : 0;
-
+                    
                 var totalWithTax = total + tax;
 
                 // توليد XML تجريبي
@@ -29,7 +29,7 @@ namespace ZohoXmlApi.Controllers
                     new XElement("Invoice",
                         new XAttribute(XNamespace.Xmlns + "cbc", "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"),
                         new XAttribute(XNamespace.Xmlns + "cac", "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"),
-                        new XAttribute(XNamespace.Xmlns + "", "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"),
+                        new XAttribute("xmlns", "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"),
 
                         new XElement(XName.Get("ID", "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"), invoiceNo),
                         new XElement(XName.Get("UUID", "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"), Guid.NewGuid().ToString()),
